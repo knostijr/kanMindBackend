@@ -24,7 +24,16 @@ class UserManager(BaseUserManager):
         
         email = self.normalize_email(email)
         
-        # Username automatisch aus Email generieren
+        # Entferne username aus extra_fields falls vorhanden
+        extra_fields.pop('username', None)
+        
+        user = self.model(
+            email=email,
+            fullname=fullname,
+            **extra_fields
+        )
+        
+        # Username automatisch aus Email generieren und setzen
         username = email.split('@')[0]
         base_username = username
         counter = 1
@@ -32,16 +41,25 @@ class UserManager(BaseUserManager):
         while self.model.objects.filter(username=username).exists():
             username = f"{base_username}{counter}"
             counter += 1
-        
-        user = self.model(
-            email=email,
-            username=username,
-            fullname=fullname,
-            **extra_fields
-        )
+
+        user.username = username
         user.set_password(password)
         user.save(using=self._db)
         return user
+
+    def create_superuser(self, email, fullname, password=None, **extra_fields):
+        """
+        Erstellt Superuser
+        """
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser muss is_staff=True haben')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser muss is_superuser=True haben')
+        
+        return self.create_user(email, fullname, password, **extra_fields)
     
     def create_superuser(self, email, fullname, password=None, **extra_fields):
         """

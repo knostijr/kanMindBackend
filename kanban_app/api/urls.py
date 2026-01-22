@@ -4,7 +4,12 @@ from rest_framework_nested import routers
 
 from .views import BoardViewSet, CommentViewSet, TaskViewSet
 
-# Haupt-Router
+"""
+URL configuration for the Board and Task API.
+Includes nested routing for comments associated with specific tasks.
+"""
+
+# Main router for top-level resources
 router = DefaultRouter()
 router.register(r'boards', BoardViewSet, basename='board')
 router.register(r'tasks', TaskViewSet, basename='task')

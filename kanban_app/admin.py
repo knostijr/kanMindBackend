@@ -5,7 +5,7 @@ from .models import Board, Comment, Task
 @admin.register(Board)
 class BoardAdmin(admin.ModelAdmin):
     """
-    Admin-Konfiguration für Boards
+    Admin interface customization for Board models.
     """
     list_display = ['title', 'owner', 'created_at']
     list_filter = ['owner', 'created_at']
@@ -17,7 +17,7 @@ class BoardAdmin(admin.ModelAdmin):
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
     """
-    Admin-Konfiguration für Tasks
+    Admin interface customization for Task models.
     """
     list_display = [
         'title',
@@ -36,7 +36,7 @@ class TaskAdmin(admin.ModelAdmin):
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     """
-    Admin-Konfiguration für Comments
+    Admin interface customization for the Comment model.
     """
     list_display = ['author', 'task', 'content_preview', 'created_at']
     list_filter = ['author', 'created_at']
@@ -45,7 +45,7 @@ class CommentAdmin(admin.ModelAdmin):
 
     def content_preview(self, obj):
         """
-        Zeige ersten 50 Zeichen
+        Return a truncated version of the content (first 50 characters).
         """
         return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
     content_preview.short_description = 'Content'

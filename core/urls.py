@@ -17,7 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+"""
+Main URL configuration for the project.
+
+The `urlpatterns` list routes URLs to views. This configuration includes:
+    - The admin interface.
+    - API endpoints for the authentication application.
+"""
+
 urlpatterns = [
+    # Django administration interface
     path('admin/', admin.site.urls),
+    
+    # API endpoints for authentication and user management
     path('api/', include('auth_app.api.urls')),
 ]

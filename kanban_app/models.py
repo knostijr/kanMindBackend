@@ -6,7 +6,7 @@ class Board(models.Model):
     """
     Board Model
 
-    Ein Board gehört einem Owner und kann mehrere Members haben.
+    Represents a project board owned by a user with a many-to-many relationship to members.
     """
     title = models.CharField(
         max_length=200,
@@ -40,8 +40,8 @@ class Task(models.Model):
     """
     Task Model
 
-    Eine Task gehört zu einem Board und kann
-    einem Assignee und Reviewer zugewiesen werden.
+    Represents an item of work within a board, featuring 
+    foreign key relationships to an assignee and a reviewer.
     """
     STATUS_CHOICES = [
         ('to-do', 'To Do'),
@@ -118,8 +118,8 @@ class Task(models.Model):
 class Comment(models.Model):
     """
     Comment Model
-    
-    Ein Kommentar gehört zu einer Task.
+
+    Represents a comment associated with a task, authored by a specific user.
     """
     task = models.ForeignKey(
         Task,

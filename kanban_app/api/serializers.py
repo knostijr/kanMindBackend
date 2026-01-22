@@ -117,13 +117,13 @@ class TaskSerializer(serializers.ModelSerializer):
     
     def get_comments_count(self, obj):
         """
-        Zähle Kommentare dieser Task
+        Count the comments for this task
         """
         return obj.comments.count()
     
     def validate_assignee_id(self, value):
         """
-        Prüfe ob assignee existiert
+        Verify that the assignee exists in the database
         """
         if value and not User.objects.filter(id=value).exists():
             raise serializers.ValidationError("Assignee not found")
@@ -131,7 +131,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def validate_reviewer_id(self, value):
         """
-        Prüfe ob reviewer existiert
+        Verify that the reviewer exists
         """
         if value and not User.objects.filter(id=value).exists():
             raise serializers.ValidationError("Reviewer not found")
@@ -139,7 +139,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """
-        Erstelle Task mit assignee_id und reviewer_id
+        Create a task with assignee_id and reviewer_id
         """
         assignee_id = validated_data.pop('assignee_id', None)
         reviewer_id = validated_data.pop('reviewer_id', None)
@@ -156,16 +156,16 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """
-        Aktualisiere Task
+        Update task
         """
         assignee_id = validated_data.pop('assignee_id', None)
         reviewer_id = validated_data.pop('reviewer_id', None)
 
-        # Normale Felder aktualisieren
+        # Update standard fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        # assignee_id und reviewer_id nur wenn im Request
+        # Update assignee_id and reviewer_id only if they are provided in the request
         if 'assignee_id' in self.initial_data:
             instance.assignee_id = assignee_id
         if 'reviewer_id' in self.initial_data:
@@ -179,9 +179,9 @@ class BoardListSerializer(serializers.ModelSerializer):
     """
     Board List Serializer
 
-    Für GET /api/boards/ (Liste)
+    for GET /api/boards/ (Liste)
 
-    Response Format (aus API-Doku):
+    Response Format (from API-Docu):
     [
         {
             "id": 1,
@@ -288,8 +288,8 @@ class BoardCreateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         """
-        Erstelle Board mit Members
-        Owner wird in View gesetzt
+        Create a board with members.
+        Owner is set in the view.
         """
         member_ids = validated_data.pop('members', [])
         board = Board.objects.create(**validated_data)
@@ -374,9 +374,8 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         """
-        board update
-        
-        Members werden ERSETZT (nicht hinzugefügt!)
+        Update board details. 
+        Note: The members list is REPLACED with the provided data, not appended.
         """
         member_ids = validated_data.pop('members', None)
         

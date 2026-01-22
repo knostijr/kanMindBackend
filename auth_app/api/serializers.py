@@ -7,9 +7,9 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     """
-    Basis User Serializer
+    Basic User Serializer
 
-    Wird für User-Darstellung in Responses verwendet.
+    Used for user representation in responses.
     """
     class Meta:
         model = User
@@ -34,7 +34,7 @@ class RegistrationSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         """
-        Prüfe ob Email bereits existiert
+        Check if email already exists
         """
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError(
@@ -44,7 +44,7 @@ class RegistrationSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         """
-        Prüfe ob beide Passwörter übereinstimmen
+        Check if both passwords match
         """
         if attrs['password'] != attrs['repeated_password']:
             raise serializers.ValidationError({
@@ -54,19 +54,19 @@ class RegistrationSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         """
-        Erstelle neuen User
+        Create a new user
 
-        Username wird automatisch aus Email generiert
-        (nur intern verwendet, nicht für Login)
+        Username is automatically generated from email
+        (used only internally, not for login)
         """
         validated_data.pop('repeated_password')
 
-        # Username automatisch generieren
+        # automatically generate username
         username = validated_data['email'].split('@')[0]
         base_username = username
         counter = 1
 
-        # Sicherstellen dass username unique ist
+        # ensure that username is unique
         while User.objects.filter(username=username).exists():
             username = f"{base_username}{counter}"
             counter += 1

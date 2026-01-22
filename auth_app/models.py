@@ -1,7 +1,3 @@
-# Standardbibliothek
-# (keine benötigt)
-
-# Drittanbieter (Third-party)
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
@@ -10,12 +6,12 @@ class UserManager(BaseUserManager):
     """
     Custom User Manager
     
-    Überschreibt create_user und create_superuser
-    um mit email statt username zu arbeiten.
+    overrides create_user and create_superuser
+    to use email instead of username
     """
     def create_user(self, email, fullname, password=None, **extra_fields):
         """
-        Erstellt normalen User
+        create normal user
         """
         if not email:
             raise ValueError('Email ist erforderlich')
@@ -24,7 +20,7 @@ class UserManager(BaseUserManager):
         
         email = self.normalize_email(email)
         
-        # Entferne username aus extra_fields falls vorhanden
+        # delete username from extra_fields, if exists
         extra_fields.pop('username', None)
         
         user = self.model(
@@ -33,7 +29,7 @@ class UserManager(BaseUserManager):
             **extra_fields
         )
         
-        # Username automatisch aus Email generieren und setzen
+        # generate username from email
         username = email.split('@')[0]
         base_username = username
         counter = 1
@@ -49,7 +45,7 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, fullname, password=None, **extra_fields):
         """
-        Erstellt Superuser
+        create superuser
         """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
@@ -59,29 +55,15 @@ class UserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser muss is_superuser=True haben')
         
-        return self.create_user(email, fullname, password, **extra_fields)
-
-    def create_superuser(self, email, fullname, password=None, **extra_fields):
-        """
-        Erstellt Superuser
-        """
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser muss is_staff=True haben')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser muss is_superuser=True haben')
-
         return self.create_user(email, fullname, password, **extra_fields)
 
 
 class User(AbstractUser):
     """
     Custom User Model
-    
-    Login erfolgt mit email statt username.
-    fullname ersetzt first_name und last_name.
+
+    Custom User model where email is the primary identifier for login.
+    The fullname field is used in place of separate first_name and last_name fields.
     """
     email = models.EmailField(
         unique=True,
@@ -92,10 +74,10 @@ class User(AbstractUser):
         help_text="Vollständiger Name des Users"
     )
     
-    # Custom Manager verwenden
+    # usw Custom Manager 
     objects = UserManager()
     
-    # Login mit Email!
+    # Login with Email!
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['fullname']
     

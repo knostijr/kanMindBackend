@@ -3,24 +3,24 @@ from rest_framework import permissions
 
 class IsBoardOwnerOrMember(permissions.BasePermission):
     """
-    Permission: User muss Owner oder Member des Boards sein
+    Permission: User must be the owner or a member of the board.
 
-    Verwendet für: Board Detail (GET), Board Update (PATCH)
+    Used for: Board Detail (GET), Board Update (PATCH).
     """
     def has_object_permission(self, request, view, obj):
-        # Owner hat immer Zugriff
+        # The owner is granted full access by default
         if obj.owner == request.user:
             return True
 
-        # Members haben Zugriff
+        # Members have access
         return obj.members.filter(id=request.user.id).exists()
 
 
 class IsBoardOwner(permissions.BasePermission):
     """
-    Permission: Nur Board-Owner
+    Permission: Board owner only.
 
-    Verwendet für: Board Delete (DELETE)
+    Used for: Board Delete (DELETE).
     """
     def has_object_permission(self, request, view, obj):
         return obj.owner == request.user
@@ -28,12 +28,12 @@ class IsBoardOwner(permissions.BasePermission):
 
 class IsBoardMember(permissions.BasePermission):
     """
-    Permission: User muss Member des Task-Boards sein
+    Permission: User must be a member of the task board.
 
-    Verwendet für: Task Create, Task Update
+    Used for: Task Create, Task Update.
     """
     def has_permission(self, request, view):
-        # Bei Create: Prüfe board_id im Request
+        # For creation: Validate board_id provided in the request
         if request.method == 'POST':
             board_id = request.data.get('board')
             if not board_id:
@@ -52,7 +52,7 @@ class IsBoardMember(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-        # Bei Update/Delete: Prüfe Task-Board
+        # For Update/Delete: Verify the task's associated board
         board = obj.board
         return (
             board.owner == request.user or
@@ -62,9 +62,9 @@ class IsBoardMember(permissions.BasePermission):
 
 class IsCommentAuthor(permissions.BasePermission):
     """
-    Permission: Nur Comment-Autor kann löschen
+    Permission: Only the comment author can delete.
 
-    Verwendet für: Comment Delete (DELETE)
+    Used for: Comment Delete (DELETE).
     """
     def has_object_permission(self, request, view, obj):
         return obj.author == request.user

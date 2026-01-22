@@ -14,7 +14,7 @@ class RegistrationView(APIView):
     """
     POST /api/registration/
 
-    Erstellt neuen User und gibt Token zurück.
+    create new user and give token back.
 
     Request:
         {
@@ -40,7 +40,7 @@ class RegistrationView(APIView):
         if serializer.is_valid():
             user = serializer.save()
 
-            # Token erstellen
+            # create token
             token, created = Token.objects.get_or_create(user=user)
 
             return Response({
@@ -60,8 +60,8 @@ class LoginView(APIView):
     """
     POST /api/login/
 
-    Authentifiziert User mit email + password.
-    Gibt Token zurück.
+    Authenticates a user using email and password
+    returns an authentication token
 
     Request:
         {
@@ -89,7 +89,7 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # User mit Email suchen
+        # searching for user with mail
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
@@ -98,14 +98,14 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Passwort prüfen
+        # check password
         if not user.check_password(password):
             return Response(
                 {"error": "Invalid credentials"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Token holen oder erstellen
+        # get or create token
         token, created = Token.objects.get_or_create(user=user)
 
         return Response({
@@ -121,6 +121,7 @@ class EmailCheckView(APIView):
     GET /api/email-check/?email=test@example.com
 
     Prüft ob Email existiert und gibt User-Daten zurück.
+    check if email is existing and return data of user
 
     Response (200):
         {

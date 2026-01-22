@@ -7,7 +7,7 @@ from .models import User
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     """
-    Admin-Konfiguration für Custom User
+    Admin-configuration for Custom User
     """
     list_display = ['email', 'fullname', 'is_staff', 'is_active']
     list_filter = ['is_staff', 'is_active', 'date_joined']

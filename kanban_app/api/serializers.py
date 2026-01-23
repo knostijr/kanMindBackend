@@ -8,9 +8,9 @@ User = get_user_model()
 
 class UserSimpleSerializer(serializers.ModelSerializer):
     """
-    Simplified User Serializer for nested representation.
-
-    Used in Board, Task, and Comment serializers to display basic user information.
+    Einfacher User Serializer für nested Darstellung
+    
+    Wird in Board/Task/Comment verwendet um User anzuzeigen.
     """
     class Meta:
         model = User
@@ -21,7 +21,7 @@ class UserSimpleSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     """
     Comment Serializer
-
+    
     Response Format (aus API-Doku):
     {
         "id": 1,
@@ -31,20 +31,15 @@ class CommentSerializer(serializers.ModelSerializer):
     }
     """
     author = serializers.SerializerMethodField()
-
+    
     class Meta:
         model = Comment
         fields = ['id', 'created_at', 'author', 'content']
         read_only_fields = ['id', 'created_at', 'author']
-
+    
     def get_author(self, obj):
-        """_summary_
-
-        Args:
-            obj (_type_): _description_
-
-        Returns:
-            _type_: _description_
+        """
+        Gebe nur fullname zurück (nicht ganzes User-Objekt)
         """
         return obj.author.fullname
 
@@ -52,7 +47,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     """
     Task Serializer
-
+    
     Request Format (aus API-Doku):
     {
         "board": 12,
@@ -117,60 +112,71 @@ class TaskSerializer(serializers.ModelSerializer):
     
     def get_comments_count(self, obj):
         """
-        Count the comments for this task
+        Zähle Kommentare dieser Task
         """
         return obj.comments.count()
     
+    def validate_board(self, value):
+        """
+        Prüfe ob Board existiert (404 statt 403!)
+        """
+        if not Board.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Board not found")
+        return value
+    
     def validate_assignee_id(self, value):
         """
-        Verify that the assignee exists in the database
+        Prüfe ob assignee existiert
         """
         if value and not User.objects.filter(id=value).exists():
             raise serializers.ValidationError("Assignee not found")
         return value
-
+    
     def validate_reviewer_id(self, value):
         """
-        Verify that the reviewer exists
+        Prüfe ob reviewer existiert
         """
         if value and not User.objects.filter(id=value).exists():
             raise serializers.ValidationError("Reviewer not found")
         return value
-
+    
     def create(self, validated_data):
         """
-        Create a task with assignee_id and reviewer_id
+        Erstelle Task mit assignee_id und reviewer_id
         """
         assignee_id = validated_data.pop('assignee_id', None)
         reviewer_id = validated_data.pop('reviewer_id', None)
-
+        
         task = Task.objects.create(**validated_data)
-
+        
         if assignee_id:
             task.assignee_id = assignee_id
         if reviewer_id:
             task.reviewer_id = reviewer_id
-
+        
         task.save()
         return task
-
+    
     def update(self, instance, validated_data):
         """
-        Update task
+        Aktualisiere Task
         """
         assignee_id = validated_data.pop('assignee_id', None)
         reviewer_id = validated_data.pop('reviewer_id', None)
-
-        # Update standard fields
+        
+        # board darf NICHT geändert werden!
+        validated_data.pop('board', None)
+        
+        # Normale Felder aktualisieren
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-
-        # Update assignee_id and reviewer_id only if they are provided in the request
+        
+        # assignee_id und reviewer_id nur wenn im Request
         if 'assignee_id' in self.initial_data:
             instance.assignee_id = assignee_id
         if 'reviewer_id' in self.initial_data:
             instance.reviewer_id = reviewer_id
-
+        
         instance.save()
         return instance
 
@@ -178,10 +184,10 @@ class TaskSerializer(serializers.ModelSerializer):
 class BoardListSerializer(serializers.ModelSerializer):
     """
     Board List Serializer
-
-    for GET /api/boards/ (Liste)
-
-    Response Format (from API-Docu):
+    
+    Für GET /api/boards/ (Liste)
+    
+    Response Format (aus API-Doku):
     [
         {
             "id": 1,
@@ -199,7 +205,7 @@ class BoardListSerializer(serializers.ModelSerializer):
     tasks_to_do_count = serializers.SerializerMethodField()
     tasks_high_prio_count = serializers.SerializerMethodField()
     owner_id = serializers.IntegerField(source='owner.id', read_only=True)
-
+    
     class Meta:
         model = Board
         fields = [
@@ -212,16 +218,16 @@ class BoardListSerializer(serializers.ModelSerializer):
             'owner_id'
         ]
         read_only_fields = ['id', 'owner_id']
-
+    
     def get_member_count(self, obj):
         return obj.members.count()
-
+    
     def get_ticket_count(self, obj):
         return obj.tasks.count()
-
+    
     def get_tasks_to_do_count(self, obj):
         return obj.tasks.filter(status='to-do').count()
-
+    
     def get_tasks_high_prio_count(self, obj):
         return obj.tasks.filter(priority='high').count()
 
@@ -229,16 +235,16 @@ class BoardListSerializer(serializers.ModelSerializer):
 class BoardCreateSerializer(serializers.ModelSerializer):
     """
     Board Create Serializer
-
-    for POST /api/boards/
-
-    Request Formate example (compare API-Doku):
+    
+    Für POST /api/boards/
+    
+    Request Format (aus API-Doku):
     {
         "title": "Neues Projekt",
         "members": [12, 5, 54, 2]
     }
-
-    Response Format example:
+    
+    Response Format:
     {
         "id": 18,
         "title": "neu",
@@ -288,8 +294,8 @@ class BoardCreateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         """
-        Create a board with members.
-        Owner is set in the view.
+        Erstelle Board mit Members
+        Owner wird in View gesetzt
         """
         member_ids = validated_data.pop('members', [])
         board = Board.objects.create(**validated_data)
@@ -304,9 +310,9 @@ class BoardDetailSerializer(serializers.ModelSerializer):
     """
     Board Detail Serializer
     
-    for GET /api/boards/{id}/
+    Für GET /api/boards/{id}/
     
-    Response Format example (compare API-Doku):
+    Response Format (aus API-Doku):
     {
         "id": 1,
         "title": "Projekt X",
@@ -335,15 +341,15 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
     """
     Board Update Serializer
     
-    for PATCH /api/boards/{id}/
+    Für PATCH /api/boards/{id}/
     
-    Request Format example (for API-Doku):
+    Request Format (aus API-Doku):
     {
         "title": "Changed title",
         "members": [1, 54]
     }
     
-    Response Format example:
+    Response Format:
     {
         "id": 3,
         "title": "Changed title",
@@ -374,16 +380,17 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         """
-        Update board details. 
-        Note: The members list is REPLACED with the provided data, not appended.
+        Aktualisiere Board
+        
+        Members werden ERSETZT (nicht hinzugefügt!)
         """
         member_ids = validated_data.pop('members', None)
         
-        # Title update
+        # Title aktualisieren
         instance.title = validated_data.get('title', instance.title)
         instance.save()
         
-        # replace all members
+        # Members komplett ersetzen
         if member_ids is not None:
             instance.members.set(member_ids)
         

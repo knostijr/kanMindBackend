@@ -16,7 +16,7 @@ Django REST Framework Backend for the KanMind Kanban Board application.
 - Django 4.2+
 - Django REST Framework
 - SQLite Database
-- JWT Authentication
+- Token Authentication
 
 ## Installation
 

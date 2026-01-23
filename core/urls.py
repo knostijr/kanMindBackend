@@ -31,4 +31,6 @@ urlpatterns = [
     
     # API endpoints for authentication and user management
     path('api/', include('auth_app.api.urls')),
+    
+    path('api/', include('kanban_app.api.urls')),
 ]

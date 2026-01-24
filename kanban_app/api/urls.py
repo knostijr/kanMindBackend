@@ -14,7 +14,8 @@ router = DefaultRouter()
 router.register(r'boards', BoardViewSet, basename='board')
 router.register(r'tasks', TaskViewSet, basename='task')
 
-# Nested Router für Task-Comments
+# Nested router for Task Comments
+# This allows for URLs like /api/tasks/{task_pk}/comments/
 tasks_router = routers.NestedDefaultRouter(
     router,
     r'tasks',

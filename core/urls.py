@@ -28,9 +28,10 @@ The `urlpatterns` list routes URLs to views. This configuration includes:
 urlpatterns = [
     # Django administration interface
     path('admin/', admin.site.urls),
-    
+
     # API endpoints for authentication and user management
     path('api/', include('auth_app.api.urls')),
-    
+
+    # API endpoints for boards, tasks, and comments
     path('api/', include('kanban_app.api.urls')),
 ]

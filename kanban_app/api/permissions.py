@@ -4,28 +4,28 @@ from rest_framework.exceptions import NotFound
 
 class IsBoardOwnerOrMember(permissions.BasePermission):
     """
-    Permission: User muss Owner oder Member des Boards sein
-    
-    Verwendet für: Board Detail (GET), Board Update (PATCH)
-    
-    WICHTIG: Prüft erst ob Board existiert (404), dann Permission (403)
+    Permission: User must be an owner or member of the board.
+
+    Used for: Board Detail (GET), Board Update (PATCH).
+
+    IMPORTANT: First checks if the board exists (404), then checks permissions (403).
     """
     def has_object_permission(self, request, view, obj):
-        # Owner hat immer Zugriff
+        # Owners always have access
         if obj.owner == request.user:
             return True
-        
-        # Members haben Zugriff
+
+        # Members have access
         return obj.members.filter(id=request.user.id).exists()
 
 
 class IsBoardOwner(permissions.BasePermission):
     """
-    Permission: Nur Board-Owner
-    
-    Verwendet für: Board Delete (DELETE)
-    
-    WICHTIG: Prüft erst ob Board existiert (404), dann Permission (403)
+    Permission: Board owner only.
+
+    Used for: Board Delete (DELETE).
+
+    IMPORTANT: First checks if the board exists (404), then checks permissions (403).
     """
     def has_object_permission(self, request, view, obj):
         return obj.owner == request.user
@@ -33,27 +33,27 @@ class IsBoardOwner(permissions.BasePermission):
 
 class IsBoardMember(permissions.BasePermission):
     """
-    Permission: User muss Member des Task-Boards sein
-    
-    Verwendet für: Task Create, Task Update, Task Delete
-    
-    WICHTIG: Prüft erst ob Board existiert (404), dann Permission (403)
+    Permission: User must be a member of the task's board.
+
+    Used for: Task Create, Task Update, Task Delete.
+
+    IMPORTANT: First checks if the board exists (404), then checks permissions (403).
     """
     def has_permission(self, request, view):
-        # Bei Create: Prüfe board_id im Request
+        # For Create: Check board_id in the request
         if request.method == 'POST':
             board_id = request.data.get('board')
             if not board_id:
                 return False
-            
+
             from kanban_app.models import Board
             try:
                 board = Board.objects.get(id=board_id)
             except Board.DoesNotExist:
-                # Board existiert nicht -> 404 (wird in View geworfen)
+                # Board does not exist -> 404 (raised in view)
                 raise NotFound("Board not found")
-            
-            # Prüfe ob User Member oder Owner ist
+
+            # Check if user is member or owner
             is_member = (
                 board.owner == request.user or
                 board.members.filter(id=request.user.id).exists()
@@ -68,7 +68,7 @@ class IsBoardMember(permissions.BasePermission):
         return True
     
     def has_object_permission(self, request, view, obj):
-        # Bei Update/Delete: Prüfe Task-Board
+        # For Update/Delete: Check the task's board
         board = obj.board
         return (
             board.owner == request.user or
@@ -78,41 +78,41 @@ class IsBoardMember(permissions.BasePermission):
 
 class IsCommentAuthorOrBoardMember(permissions.BasePermission):
     """
-    Permission: Comment darf nur von Board-Members gesehen werden
-    
-    Und nur Autor kann Comment löschen
-    
-    WICHTIG: Prüft erst ob Task/Comment existiert (404), dann Permission (403)
+    Permission: Comments can only be seen by board members.
+
+    Additionally, only the author can delete the comment.
+
+    IMPORTANT: First checks if Task/Comment exists (404), then checks permissions (403).
     """
     def has_permission(self, request, view):
-        # Bei GET/POST: Prüfe ob User Member des Task-Boards ist
+        # For GET/POST: Check if user is a member of the task's board
         task_id = view.kwargs.get('task_pk')
         if not task_id:
             return False
-        
+
         from kanban_app.models import Task
         try:
             task = Task.objects.get(id=task_id)
         except Task.DoesNotExist:
-            # Task existiert nicht -> 404
+            # Task does not exist -> 404
             raise NotFound("Task not found")
-        
+
         board = task.board
         is_member = (
             board.owner == request.user or
             board.members.filter(id=request.user.id).exists()
         )
-        
+
         if not is_member:
-            # User ist kein Member -> 403
+            # User is not a member -> 403
             return False
-        
+
         return True
     
     def has_object_permission(self, request, view, obj):
-        # Bei DELETE: Nur Autor darf löschen
+        # For DELETE: Only the author is allowed to delete
         if request.method == 'DELETE':
             return obj.author == request.user
         
-        # Bei GET: Board-Member Check (wurde schon in has_permission gemacht)
+        # For GET: Board member check (already handled in has_permission)
         return True

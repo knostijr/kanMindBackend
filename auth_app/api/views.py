@@ -68,12 +68,10 @@ class LoginView(APIView):
                 {"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-
         if not user.check_password(password):
             return Response(
                 {"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
             )
-
 
         token, created = Token.objects.get_or_create(user=user)
 

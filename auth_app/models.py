@@ -26,7 +26,6 @@ class UserManager(BaseUserManager):
 
         user = self.model(email=email, fullname=fullname, **extra_fields)
 
-
         username = email.split("@")[0]
         base_username = username
         counter = 1
@@ -68,9 +67,7 @@ class User(AbstractUser):
         max_length=200, help_text="Vollständiger Name des Users"
     )
 
-
     objects = UserManager()
-
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["fullname"]

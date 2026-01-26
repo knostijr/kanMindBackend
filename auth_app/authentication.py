@@ -7,13 +7,14 @@ class CustomTokenAuthentication(BaseAuthentication):
     """
     Custom Token Authentication for API requests.
 
-    Implements Bearer token authentication by parsing the Authorization header
+    Implementstoken authentication by parsing the Authorization header
     and validating tokens against the database.
 
     Usage:
-        Authorization: Bearer <token>
+        Authorization:  <token>
     """
-    keyword = 'Bearer'
+
+    keyword = "Token"
 
     def authenticate(self, request):
         """
@@ -30,14 +31,14 @@ class CustomTokenAuthentication(BaseAuthentication):
             AuthenticationFailed: If authentication fails
         """
         # Get Authorization header
-        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        auth_header = request.META.get("HTTP_AUTHORIZATION", "")
 
         if not auth_header:
             return None
 
         # Parse "Bearer <token>"
         parts = auth_header.split()
-        
+
         if len(parts) != 2 or parts[0] != self.keyword:
             return None
 
@@ -45,13 +46,13 @@ class CustomTokenAuthentication(BaseAuthentication):
 
         # Validate token against database
         try:
-            token = Token.objects.select_related('user').get(key=token_key)
+            token = Token.objects.select_related("user").get(key=token_key)
 
             # Check if user is active
             if not token.user.is_active:
-                raise exceptions.AuthenticationFailed('User inactive or deleted')
+                raise exceptions.AuthenticationFailed("User inactive or deleted")
 
             return (token.user, token)
 
         except Token.DoesNotExist:
-            raise exceptions.AuthenticationFailed('Invalid token')
+            raise exceptions.AuthenticationFailed("Invalid token")

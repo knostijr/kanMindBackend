@@ -1,4 +1,4 @@
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
@@ -9,7 +9,7 @@ from .permissions import (
     IsBoardMember,
     IsBoardOwner,
     IsBoardOwnerOrMember,
-    IsCommentAuthorOrBoardMember
+    IsCommentAuthorOrBoardMember,
 )
 from .serializers import (
     BoardCreateSerializer,
@@ -17,7 +17,7 @@ from .serializers import (
     BoardListSerializer,
     BoardUpdateSerializer,
     CommentSerializer,
-    TaskSerializer
+    TaskSerializer,
 )
 
 
@@ -29,9 +29,10 @@ class BoardViewSet(viewsets.ModelViewSet):
     - GET /api/boards/ - list off all Boards (Owner/Member)
     - POST /api/boards/ - create a Board
     - GET /api/boards/{id}/ - Board-Details
-    - PATCH /api/boards/{id}/ -  update boards 
-    - DELETE /api/boards/{id}/ - delete Board löschen
+    - PATCH /api/boards/{id}/ -  update boards
+    - DELETE /api/boards/{id}/ - delete Board
     """
+
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -43,20 +44,20 @@ class BoardViewSet(viewsets.ModelViewSet):
         # Apply distinct() to BOTH querysets before combining
         owner_boards = Board.objects.filter(owner=user).distinct()
         member_boards = Board.objects.filter(members=user).distinct()
-    
+
         return owner_boards | member_boards
 
     def get_serializer_class(self):
         """
         choose Serializer due to action
         """
-        if self.action == 'list':
+        if self.action == "list":
             return BoardListSerializer
-        elif self.action == 'create':
+        elif self.action == "create":
             return BoardCreateSerializer
-        elif self.action == 'retrieve':
+        elif self.action == "retrieve":
             return BoardDetailSerializer
-        elif self.action in ['update', 'partial_update']:
+        elif self.action in ["update", "partial_update"]:
             return BoardUpdateSerializer
         return BoardListSerializer
 
@@ -64,9 +65,9 @@ class BoardViewSet(viewsets.ModelViewSet):
         """
         choose permissions depend of action
         """
-        if self.action == 'destroy':
+        if self.action == "destroy":
             return [IsAuthenticated(), IsBoardOwner()]
-        elif self.action in ['retrieve', 'update', 'partial_update']:
+        elif self.action in ["retrieve", "update", "partial_update"]:
             return [IsAuthenticated(), IsBoardOwnerOrMember()]
         return [IsAuthenticated()]
 
@@ -74,7 +75,7 @@ class BoardViewSet(viewsets.ModelViewSet):
         """
         overwrite get_object to get 404 before 403
         """
-        queryset = Board.objects.all() 
+        queryset = Board.objects.all()
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
 
@@ -98,12 +99,13 @@ class TaskViewSet(viewsets.ModelViewSet):
     ViewSet for Task CRUD-Operationen
 
     Endpoints (from API-Doku):
-    - POST /api/tasks/ - create Task 
-    - PATCH /api/tasks/{id}/ - update Task 
-    - DELETE /api/tasks/{id}/ - delete Task 
+    - POST /api/tasks/ - create Task
+    - PATCH /api/tasks/{id}/ - update Task
+    - DELETE /api/tasks/{id}/ - delete Task
     - GET /api/tasks/assigned-to-me/ - assigned tasks
     - GET /api/tasks/reviewing/ - reviewing task
     """
+
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, IsBoardMember]
 
@@ -120,7 +122,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def get_object(self):
         """
-        update get_object um 404 VOR 403 
+        update get_object um 404 VOR 403
         """
         queryset = Task.objects.all()
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
@@ -133,8 +135,8 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         self.check_object_permissions(self.request, obj)
         return obj
-    
-    @action(detail=False, methods=['get'], url_path='assigned-to-me')
+
+    @action(detail=False, methods=["get"], url_path="assigned-to-me")
     def assigned_to_me(self, request):
         """
         GET /api/tasks/assigned-to-me/
@@ -161,7 +163,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(tasks, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='reviewing')
+    @action(detail=False, methods=["get"], url_path="reviewing")
     def reviewing(self, request):
         """
         GET /api/tasks/reviewing/
@@ -184,59 +186,57 @@ class CommentViewSet(viewsets.ModelViewSet):
     - POST /api/tasks/{task_id}/comments/ Create a comment
     - DELETE /api/tasks/{task_id}/comments/{id}/  Delete a comment
     """
+
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated, IsCommentAuthorOrBoardMember]
-    http_method_names = ['get', 'post', 'delete'] 
-    
+    http_method_names = ["get", "post", "delete"]
+
     def get_queryset(self):
         """
         Retrieve comments associated with a task
         """
-        task_id = self.kwargs.get('task_pk')
-        
+        task_id = self.kwargs.get("task_pk")
+
         # check if task existing (404!)
         try:
             Task.objects.get(id=task_id)
         except Task.DoesNotExist:
             raise NotFound("Task not found")
-        
+
         return Comment.objects.filter(task_id=task_id)
-    
+
     def get_object(self):
         """
         Ensure get_object raises 404 prior to permission checks
         """
-        task_id = self.kwargs.get('task_pk')
-        comment_id = self.kwargs.get('pk')
-        
+        task_id = self.kwargs.get("task_pk")
+        comment_id = self.kwargs.get("pk")
+
         # check if task is existing
         try:
             Task.objects.get(id=task_id)
         except Task.DoesNotExist:
             raise NotFound("Task not found")
-        
+
         # check if Comment is existing
         try:
             obj = Comment.objects.get(id=comment_id, task_id=task_id)
         except Comment.DoesNotExist:
             raise NotFound("Comment not found")
-        
+
         # Permission-Check (can 403 werfen)
         self.check_object_permissions(self.request, obj)
         return obj
-    
+
     def perform_create(self, serializer):
         """
         Auto-assign author and task
         """
-        task_id = self.kwargs.get('task_pk')
+        task_id = self.kwargs.get("task_pk")
 
         try:
             task = Task.objects.get(id=task_id)
         except Task.DoesNotExist:
             raise NotFound("Task not found")
 
-        serializer.save(
-            author=self.request.user,
-            task=task
-        )
+        serializer.save(author=self.request.user, task=task)

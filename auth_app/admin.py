@@ -9,24 +9,36 @@ class UserAdmin(BaseUserAdmin):
     """
     Admin-configuration for Custom User
     """
-    list_display = ['email', 'fullname', 'is_staff', 'is_active']
-    list_filter = ['is_staff', 'is_active', 'date_joined']
-    search_fields = ['email', 'fullname']
-    ordering = ['email']
-    
+
+    list_display = ["email", "fullname", "is_staff", "is_active"]
+    list_filter = ["is_staff", "is_active", "date_joined"]
+    search_fields = ["email", "fullname"]
+    ordering = ["email"]
+
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('fullname',)}),
-        ('Permissions', {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 
-                      'groups', 'user_permissions')
-        }),
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        (None, {"fields": ("email", "password")}),
+        ("Personal info", {"fields": ("fullname",)}),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
+        ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
-    
+
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'fullname', 'password1', 'password2'),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("email", "fullname", "password1", "password2"),
+            },
+        ),
     )

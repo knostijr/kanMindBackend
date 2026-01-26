@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import include, path
 
@@ -27,11 +28,9 @@ The `urlpatterns` list routes URLs to views. This configuration includes:
 
 urlpatterns = [
     # Django administration interface
-    path('admin/', admin.site.urls),
-
+    path("admin/", admin.site.urls),
     # API endpoints for authentication and user management
-    path('api/', include('auth_app.api.urls')),
-
+    path("api/", include("auth_app.api.urls")),
     # API endpoints for boards, tasks, and comments
-    path('api/', include('kanban_app.api.urls')),
+    path("api/", include("kanban_app.api.urls")),
 ]

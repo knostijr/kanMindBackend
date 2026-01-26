@@ -4,7 +4,7 @@ A full-featured Kanban board API built with Django REST Framework, featuring tok
 
 ## 🚀 Features
 
-- **Token Authentication** - Secure API access with Bearer tokens
+- **Token Authentication** - Secure API access with tokens
 - **User Management** - Registration, login, and email verification
 - **Board Management** - Create, update, and manage boards with members
 - **Task System** - Full CRUD operations with assignee and reviewer support

@@ -23,14 +23,14 @@ from .serializers import (
 
 class BoardViewSet(viewsets.ModelViewSet):
     """
-    ViewSet für Board CRUD-Operationen
+    ViewSet for Board CRUD-Operationen
 
-    Endpoints (aus API-Doku):
-    - GET /api/boards/ - Liste aller Boards (Owner/Member)
-    - POST /api/boards/ - Board erstellen
+    Endpoints (from API-Docu):
+    - GET /api/boards/ - list off all Boards (Owner/Member)
+    - POST /api/boards/ - create a Board
     - GET /api/boards/{id}/ - Board-Details
-    - PATCH /api/boards/{id}/ - Board aktualisieren
-    - DELETE /api/boards/{id}/ - Board löschen
+    - PATCH /api/boards/{id}/ -  update boards 
+    - DELETE /api/boards/{id}/ - delete Board löschen
     """
     permission_classes = [IsAuthenticated]
 
@@ -72,7 +72,7 @@ class BoardViewSet(viewsets.ModelViewSet):
 
     def get_object(self):
         """
-        overwrite get_object to get 404 before 403 zu werfen
+        overwrite get_object to get 404 before 403
         """
         queryset = Board.objects.all() 
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
@@ -95,9 +95,9 @@ class BoardViewSet(viewsets.ModelViewSet):
 
 class TaskViewSet(viewsets.ModelViewSet):
     """
-    ViewSet für Task CRUD-Operationen
-    
-    Endpoints (aus API-Doku):
+    ViewSet for Task CRUD-Operationen
+
+    Endpoints (from API-Doku):
     - POST /api/tasks/ - create Task 
     - PATCH /api/tasks/{id}/ - update Task 
     - DELETE /api/tasks/{id}/ - delete Task 
@@ -112,25 +112,25 @@ class TaskViewSet(viewsets.ModelViewSet):
         User only see tasks where he is board owner
         """
         user = self.request.user
-        
+
         owner_tasks = Task.objects.filter(board__owner=user).distinct()
         member_tasks = Task.objects.filter(board__members=user).distinct()
-        
+
         return owner_tasks | member_tasks
 
     def get_object(self):
         """
-        update get_object um 404 VOR 403 zu werfen
+        update get_object um 404 VOR 403 
         """
         queryset = Task.objects.all()
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-        
+
         try:
             obj = queryset.get(**filter_kwargs)
         except Task.DoesNotExist:
             raise NotFound("Task not found")
-        #  Permission-Check
+
         self.check_object_permissions(self.request, obj)
         return obj
     
